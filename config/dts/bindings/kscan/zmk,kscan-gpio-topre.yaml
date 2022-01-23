@@ -1,0 +1,28 @@
+# Copyright (c) 2022 Kan-Ru Chen
+# SPDX-License-Identifier: MIT
+
+description: GPIO topre keyboard controller
+
+compatible: "zmk,kscan-gpio-topre"
+
+include: kscan.yaml
+
+properties:
+  gpios:
+    type: phandle-array
+    required: true
+  matrix-relax-us:
+    type: int
+    default: 6
+  adc-read-settle-us:
+    type: int
+    default: 5
+  active-polling-interval-ms:
+    type: int
+    default: 8
+  idle-polling-interval-ms:
+    type: int
+    default: 30
+  sleep-polling-interval-ms:
+    type: int
+    default: 3000
