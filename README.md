@@ -7,5 +7,7 @@ Follow the steps in the [official ZMK document](https://zmk.dev/docs/user-setup)
 Add the extra kscan module:
 
 ```sh
-west build -b nice_nano_v2 -- -DSHIELD=hhkb -DZEPHYR_EXTRA_MODULES=$WORKSPACE_PATH/config/drivers/ -DZMK_CONFIG=$WORKSPACE_PATH/config
+west build -b nice_nano_v2 -- \
+    -DSHIELD=hhkb -DZEPHYR_EXTRA_MODULES=$WORKSPACE_PATH/config/drivers/ \
+    -DZMK_CONFIG=$WORKSPACE_PATH/config
 ```
