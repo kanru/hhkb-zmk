@@ -11,3 +11,11 @@ west build -b nice_nano_v2 -- \
     -DSHIELD=hhkb -DZEPHYR_EXTRA_MODULES=$WORKSPACE_PATH/config/drivers/ \
     -DZMK_CONFIG=$WORKSPACE_PATH/config
 ```
+
+## Soldering (WIP)
+
+![parts](./images/parts.jpg)
+
+![connector](./images/connector.jpg)
+
+![board](./images/board.jpg)
