@@ -205,8 +205,6 @@ ZMK_SUBSCRIPTION(kscan_gpio_topre, zmk_activity_state_changed);
 static int kscan_gpio_topre_init(const struct device *dev)
 {
     LOG_DBG("KSCAN init");
-    // We can't use interrupt to wake-up from deep-sleep, hence we are always "busy".
-    device_busy_set(dev);
     struct kscan_gpio_topre_data *data = dev->data;
     const struct kscan_gpio_topre_config *cfg = dev->config;
     for (int i = 0; i < SEL_PINS; ++i)
@@ -263,7 +261,7 @@ static const struct kscan_gpio_topre_config kscan_gpio_topre_config = {
     .sleep_polling_interval_ms = DT_INST_PROP(0, sleep_polling_interval_ms),
 };
 
-DEVICE_DT_INST_DEFINE(0, kscan_gpio_topre_init, device_pm_control_nop, &kscan_gpio_topre_data,
+DEVICE_DT_INST_DEFINE(0, kscan_gpio_topre_init, NULL, &kscan_gpio_topre_data,
                       &kscan_gpio_topre_config, APPLICATION, CONFIG_APPLICATION_INIT_PRIORITY,
                       &kscan_gpio_topre_api);
 
