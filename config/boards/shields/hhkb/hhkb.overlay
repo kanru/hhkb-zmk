@@ -18,7 +18,9 @@
                 <&pro_micro_d 3 GPIO_ACTIVE_HIGH>, /* 6: BIT3 */
                 <&pro_micro_d 2 GPIO_ACTIVE_HIGH>, /* 7: BIT4 */
                 <&pro_micro_d 0 GPIO_ACTIVE_HIGH>, /* 8: BIT5 */
-                <&pro_micro_d 1 GPIO_ACTIVE_HIGH>; /* 9: STROBE */
+                <&pro_micro_d 1 GPIO_ACTIVE_HIGH>, /* 9: STROBE */
+                <&pro_micro_d 19 GPIO_ACTIVE_HIGH>, /* Wake up pin */
+                <&pro_micro_d 10 (GPIO_ACTIVE_LOW|GPIO_PULL_DOWN)>; /* Wake up sense */
     };
 
     default_transform: keymap_transform_0 {

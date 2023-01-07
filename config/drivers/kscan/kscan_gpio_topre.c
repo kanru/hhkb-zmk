@@ -43,6 +43,8 @@ struct kscan_gpio_topre_config
     struct kscan_gpio_item_config key;
     struct kscan_gpio_item_config hys;
     struct kscan_gpio_item_config strobe;
+    struct kscan_gpio_item_config wake_up_pin;
+    struct kscan_gpio_item_config wake_up_sense;
     const uint16_t matrix_relax_us;
     const uint16_t adc_read_settle_us;
     const uint16_t active_polling_interval_ms;
@@ -61,6 +63,8 @@ struct kscan_gpio_topre_data
     const struct device *key;
     const struct device *hys;
     const struct device *strobe;
+    const struct device *wake_up_pin;
+    const struct device *wake_up_sense;
     const struct device *dev;
 };
 
@@ -178,7 +182,7 @@ static int kscan_gpio_topre_activity_event_handler(const zmk_event_t *eh)
     const struct device *dev = DEVICE_DT_INST_GET(0);
     struct kscan_gpio_topre_data *data = dev->data;
     const struct kscan_gpio_topre_config *cfg = dev->config;
-    uint16_t poll_interval;
+    uint16_t poll_interval = cfg->active_polling_interval_ms;
     switch (ev->state)
     {
     case ZMK_ACTIVITY_ACTIVE:
@@ -188,7 +192,9 @@ static int kscan_gpio_topre_activity_event_handler(const zmk_event_t *eh)
         poll_interval = cfg->idle_polling_interval_ms;
         break;
     case ZMK_ACTIVITY_SLEEP:
+#if !IS_ENABLED(CONFIG_ZMK_SLEEP)
         poll_interval = cfg->sleep_polling_interval_ms;
+#endif
         break;
     default:
         LOG_WRN("Unhandled activity state: %d", ev->state);
@@ -224,6 +230,11 @@ static int kscan_gpio_topre_init(const struct device *dev)
     gpio_pin_configure(data->hys, cfg->hys.pin, GPIO_OUTPUT_INACTIVE | cfg->hys.flags);
     data->strobe = device_get_binding(cfg->strobe.label);
     gpio_pin_configure(data->strobe, cfg->strobe.pin, GPIO_OUTPUT_INACTIVE | cfg->strobe.flags);
+    data->wake_up_pin = device_get_binding(cfg->wake_up_pin.label);
+    gpio_pin_configure(data->wake_up_pin, cfg->wake_up_pin.pin, GPIO_OUTPUT_ACTIVE | cfg->wake_up_pin.flags);
+    data->wake_up_sense = device_get_binding(cfg->wake_up_sense.label);
+    gpio_pin_configure(data->wake_up_sense, cfg->wake_up_sense.pin, GPIO_INPUT | cfg->wake_up_sense.flags);
+    gpio_pin_interrupt_configure(data->wake_up_sense, cfg->wake_up_sense.pin, GPIO_INT_LEVEL_ACTIVE | cfg->wake_up_sense.flags);
     data->dev = dev;
 
     k_timer_init(&data->poll_timer, kscan_gpio_topre_timer_handler, NULL);
@@ -254,6 +265,8 @@ static const struct kscan_gpio_topre_config kscan_gpio_topre_config = {
     .key = KSCAN_GPIO_TOPRE_ITEM_CFG(0, 1),
     .hys = KSCAN_GPIO_TOPRE_ITEM_CFG(0, 2),
     .strobe = KSCAN_GPIO_TOPRE_ITEM_CFG(0, 9),
+    .wake_up_pin = KSCAN_GPIO_TOPRE_ITEM_CFG(0, 10),
+    .wake_up_sense = KSCAN_GPIO_TOPRE_ITEM_CFG(0, 11),
     .matrix_relax_us = DT_INST_PROP(0, matrix_relax_us),
     .adc_read_settle_us = DT_INST_PROP(0, adc_read_settle_us),
     .active_polling_interval_ms = DT_INST_PROP(0, active_polling_interval_ms),
