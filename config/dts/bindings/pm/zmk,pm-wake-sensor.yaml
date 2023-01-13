@@ -1,0 +1,14 @@
+# Copyright (c) 2022 Kan-Ru Chen
+# SPDX-License-Identifier: MIT
+
+description: GPIO button to wake up a nRF52 board
+
+compatible: "zmk,pm-wake-sensor"
+
+properties:
+  power-gpios:
+    type: phandle-array
+    required: false
+  sensor-gpios:
+    type: phandle-array
+    required: true
