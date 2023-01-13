@@ -15,8 +15,6 @@
 
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
-#if DT_HAS_COMPAT_STATUS_OKAY(DT_DRV_COMPAT)
-
 #define MATRIX_ROWS 8
 #define MATRIX_COLS 8
 #define MATRIX_CELLS (MATRIX_ROWS * MATRIX_COLS)
@@ -264,5 +262,3 @@ static const struct kscan_gpio_topre_config kscan_gpio_topre_config = {
 DEVICE_DT_INST_DEFINE(0, kscan_gpio_topre_init, NULL, &kscan_gpio_topre_data,
                       &kscan_gpio_topre_config, APPLICATION, CONFIG_APPLICATION_INIT_PRIORITY,
                       &kscan_gpio_topre_api);
-
-#endif /* DT_HAS_COMPAT_STATUS_OKAY(DT_DRV_COMPAT) */
