@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Kan-Ru Chen
+ * Copyright (c) 2022, 2023 Kan-Ru Chen
  *
  * SPDX-License-Identifier: MIT
  */
@@ -20,27 +20,13 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #define MATRIX_CELLS (MATRIX_ROWS * MATRIX_COLS)
 #define SEL_PINS 6
 
-struct kscan_gpio_item_config
-{
-    char *label;
-    gpio_pin_t pin;
-    gpio_flags_t flags;
-};
-
-#define KSCAN_GPIO_TOPRE_ITEM_CFG(n, idx)                  \
-    {                                                      \
-        .label = DT_INST_GPIO_LABEL_BY_IDX(n, gpios, idx), \
-        .pin = DT_INST_GPIO_PIN_BY_IDX(n, gpios, idx),     \
-        .flags = DT_INST_GPIO_FLAGS_BY_IDX(n, gpios, idx), \
-    }
-
 struct kscan_gpio_topre_config
 {
-    struct kscan_gpio_item_config bits[SEL_PINS];
-    struct kscan_gpio_item_config power;
-    struct kscan_gpio_item_config key;
-    struct kscan_gpio_item_config hys;
-    struct kscan_gpio_item_config strobe;
+    struct gpio_dt_spec bits[SEL_PINS];
+    struct gpio_dt_spec power;
+    struct gpio_dt_spec key;
+    struct gpio_dt_spec hys;
+    struct gpio_dt_spec strobe;
     const uint16_t matrix_relax_us;
     const uint16_t adc_read_settle_us;
     const uint16_t active_polling_interval_ms;
@@ -54,11 +40,6 @@ struct kscan_gpio_topre_data
     struct k_timer poll_timer;
     struct k_work poll;
     bool matrix_state[MATRIX_CELLS];
-    const struct device *bits[SEL_PINS];
-    const struct device *power;
-    const struct device *key;
-    const struct device *hys;
-    const struct device *strobe;
     const struct device *dev;
 };
 
@@ -80,7 +61,8 @@ static int kscan_gpio_topre_enable(const struct device *dev)
     LOG_DBG("KSCAN API enable");
     struct kscan_gpio_topre_data *data = dev->data;
     const struct kscan_gpio_topre_config *cfg = dev->config;
-    k_timer_start(&data->poll_timer, K_MSEC(cfg->active_polling_interval_ms),
+    k_timer_start(&data->poll_timer,
+                  K_MSEC(cfg->active_polling_interval_ms),
                   K_MSEC(cfg->active_polling_interval_ms));
     return 0;
 }
@@ -108,36 +90,36 @@ static void kscan_gpio_topre_work_handler(struct k_work *work)
     bool matrix_read[MATRIX_CELLS];
 
     // Power on everything
-    gpio_pin_configure(data->key, cfg->key.pin, GPIO_INPUT | cfg->key.flags);
-    gpio_pin_set(data->strobe, cfg->strobe.pin, 1);
-    gpio_pin_set(data->power, cfg->power.pin, 1);
+    gpio_pin_configure(cfg->key.port, cfg->key.pin, GPIO_INPUT | cfg->key.dt_flags);
+    gpio_pin_set(cfg->strobe.port, cfg->strobe.pin, 1);
+    gpio_pin_set(cfg->power.port, cfg->power.pin, 1);
     // Topre controller board needs 5 ms to be operational
     k_sleep(K_MSEC(5));
     for (int r = 0; r < MATRIX_ROWS; ++r)
     {
         for (int c = 0; c < MATRIX_COLS; ++c)
         {
-            gpio_pin_set(data->bits[0], cfg->bits[0].pin, r & BIT(0));
-            gpio_pin_set(data->bits[1], cfg->bits[1].pin, r & BIT(1));
-            gpio_pin_set(data->bits[2], cfg->bits[2].pin, r & BIT(2));
-            gpio_pin_set(data->bits[3], cfg->bits[3].pin, c & BIT(0));
-            gpio_pin_set(data->bits[4], cfg->bits[4].pin, c & BIT(1));
-            gpio_pin_set(data->bits[5], cfg->bits[5].pin, c & BIT(2));
+            gpio_pin_set(cfg->bits[0].port, cfg->bits[0].pin, r & BIT(0));
+            gpio_pin_set(cfg->bits[1].port, cfg->bits[1].pin, r & BIT(1));
+            gpio_pin_set(cfg->bits[2].port, cfg->bits[2].pin, r & BIT(2));
+            gpio_pin_set(cfg->bits[3].port, cfg->bits[3].pin, c & BIT(0));
+            gpio_pin_set(cfg->bits[4].port, cfg->bits[4].pin, c & BIT(1));
+            gpio_pin_set(cfg->bits[5].port, cfg->bits[5].pin, c & BIT(2));
 
             int cell = (r * MATRIX_COLS) + c;
             const bool prev = data->matrix_state[cell];
-            gpio_pin_set(data->hys, cfg->hys.pin, prev);
+            gpio_pin_set(cfg->hys.port, cfg->hys.pin, prev);
 
             k_busy_wait(cfg->matrix_relax_us);
 
             const unsigned int lock = irq_lock();
             // Pull low strobe line to trigger sensing
-            gpio_pin_set(data->strobe, cfg->strobe.pin, 0);
-            gpio_pin_set(data->strobe, cfg->strobe.pin, 1);
+            gpio_pin_set(cfg->strobe.port, cfg->strobe.pin, 0);
+            gpio_pin_set(cfg->strobe.port, cfg->strobe.pin, 1);
             k_busy_wait(cfg->adc_read_settle_us);
-            const bool pressed = gpio_pin_get(data->key, cfg->key.pin);
+            const bool pressed = gpio_pin_get(cfg->key.port, cfg->key.pin);
             irq_unlock(lock);
-            gpio_pin_set(data->hys, cfg->hys.pin, 0);
+            gpio_pin_set(cfg->hys.port, cfg->hys.pin, 0);
 
             matrix_read[cell] = pressed;
         }
@@ -146,11 +128,11 @@ static void kscan_gpio_topre_work_handler(struct k_work *work)
     // current leakage.
     for (int i = 0; i < SEL_PINS; ++i)
     {
-        gpio_pin_set(data->bits[i], cfg->bits[i].pin, 0);
+        gpio_pin_set(cfg->bits[i].port, cfg->bits[i].pin, 0);
     }
-    gpio_pin_configure(data->key, cfg->key.pin, GPIO_DISCONNECTED);
-    gpio_pin_set(data->power, cfg->power.pin, 0);
-    gpio_pin_set(data->strobe, cfg->strobe.pin, 0);
+    gpio_pin_configure(cfg->key.port, cfg->key.pin, GPIO_DISCONNECTED);
+    gpio_pin_set(cfg->power.port, cfg->power.pin, 0);
+    gpio_pin_set(cfg->strobe.port, cfg->strobe.pin, 0);
 
     for (int r = 0; r < MATRIX_ROWS; ++r)
     {
@@ -166,14 +148,13 @@ static void kscan_gpio_topre_work_handler(struct k_work *work)
     }
 }
 
-static int kscan_gpio_topre_activity_event_handler(const zmk_event_t *eh)
+static int kscan_gpio_topre_activity_event_handler(const struct device *dev, const zmk_event_t *eh)
 {
     struct zmk_activity_state_changed *ev = as_zmk_activity_state_changed(eh);
     if (ev == NULL)
     {
         return -ENOTSUP;
     }
-    const struct device *dev = DEVICE_DT_INST_GET(0);
     struct kscan_gpio_topre_data *data = dev->data;
     const struct kscan_gpio_topre_config *cfg = dev->config;
     uint16_t poll_interval;
@@ -197,68 +178,75 @@ static int kscan_gpio_topre_activity_event_handler(const zmk_event_t *eh)
     return 0;
 }
 
-ZMK_LISTENER(kscan_gpio_topre, kscan_gpio_topre_activity_event_handler);
-ZMK_SUBSCRIPTION(kscan_gpio_topre, zmk_activity_state_changed);
-
 static int kscan_gpio_topre_init(const struct device *dev)
 {
     LOG_DBG("KSCAN init");
     struct kscan_gpio_topre_data *data = dev->data;
     const struct kscan_gpio_topre_config *cfg = dev->config;
+    data->dev = dev;
     for (int i = 0; i < SEL_PINS; ++i)
     {
-        const struct kscan_gpio_item_config *pin_cfg = &cfg->bits[i];
-        data->bits[i] = device_get_binding(pin_cfg->label);
-        gpio_pin_configure(data->bits[i], pin_cfg->pin, GPIO_OUTPUT_INACTIVE | pin_cfg->flags);
+        gpio_pin_configure(cfg->bits[i].port,
+                           cfg->bits[i].pin,
+                           GPIO_OUTPUT_INACTIVE | cfg->bits[i].dt_flags);
     }
     // The power line needs to source more than 0.5 mA current. Set the GPIO
     // drive mode to high drive.
-    data->power = device_get_binding(cfg->power.label);
-    gpio_pin_configure(data->power, cfg->power.pin,
-                       GPIO_OUTPUT_INACTIVE | GPIO_DS_ALT_HIGH | cfg->power.flags);
-    data->key = device_get_binding(cfg->key.label);
-    gpio_pin_configure(data->key, cfg->key.pin, GPIO_DISCONNECTED);
-    data->hys = device_get_binding(cfg->hys.label);
-    gpio_pin_configure(data->hys, cfg->hys.pin, GPIO_OUTPUT_INACTIVE | cfg->hys.flags);
-    data->strobe = device_get_binding(cfg->strobe.label);
-    gpio_pin_configure(data->strobe, cfg->strobe.pin, GPIO_OUTPUT_INACTIVE | cfg->strobe.flags);
-    data->dev = dev;
+    gpio_pin_configure(cfg->power.port, cfg->power.pin,
+                       GPIO_OUTPUT_INACTIVE | GPIO_DS_ALT_HIGH | cfg->power.dt_flags);
+    // Disconnect input pin to save power.
+    gpio_pin_configure(cfg->key.port, cfg->key.pin, GPIO_DISCONNECTED);
+    gpio_pin_configure(cfg->hys.port, cfg->hys.pin, GPIO_OUTPUT_INACTIVE | cfg->hys.dt_flags);
+    gpio_pin_configure(cfg->strobe.port, cfg->strobe.pin, GPIO_OUTPUT_INACTIVE | cfg->strobe.dt_flags);
 
     k_timer_init(&data->poll_timer, kscan_gpio_topre_timer_handler, NULL);
     k_work_init(&data->poll, kscan_gpio_topre_work_handler);
 
     return 0;
 }
-
 static const struct kscan_driver_api kscan_gpio_topre_api = {
     .config = kscan_gpio_topre_configure,
     .enable_callback = kscan_gpio_topre_enable,
     .disable_callback = kscan_gpio_topre_disable,
 };
 
-static struct kscan_gpio_topre_data kscan_gpio_topre_data;
+#define CREATE_KSCAN_GPIO_TOPRE(inst)                                                       \
+    static struct kscan_gpio_topre_data kscan_gpio_topre_data##inst;                        \
+    static const struct kscan_gpio_topre_config kscan_gpio_topre_config##inst = {           \
+        .bits =                                                                             \
+            {                                                                               \
+                GPIO_DT_SPEC_INST_GET_BY_IDX(inst, gpios, 3),                               \
+                GPIO_DT_SPEC_INST_GET_BY_IDX(inst, gpios, 4),                               \
+                GPIO_DT_SPEC_INST_GET_BY_IDX(inst, gpios, 5),                               \
+                GPIO_DT_SPEC_INST_GET_BY_IDX(inst, gpios, 6),                               \
+                GPIO_DT_SPEC_INST_GET_BY_IDX(inst, gpios, 7),                               \
+                GPIO_DT_SPEC_INST_GET_BY_IDX(inst, gpios, 8),                               \
+            },                                                                              \
+        .power = GPIO_DT_SPEC_INST_GET_BY_IDX(inst, gpios, 0),                              \
+        .key = GPIO_DT_SPEC_INST_GET_BY_IDX(inst, gpios, 1),                                \
+        .hys = GPIO_DT_SPEC_INST_GET_BY_IDX(inst, gpios, 2),                                \
+        .strobe = GPIO_DT_SPEC_INST_GET_BY_IDX(inst, gpios, 9),                             \
+        .matrix_relax_us = DT_INST_PROP(inst, matrix_relax_us),                             \
+        .adc_read_settle_us = DT_INST_PROP(inst, adc_read_settle_us),                       \
+        .active_polling_interval_ms = DT_INST_PROP(inst, active_polling_interval_ms),       \
+        .idle_polling_interval_ms = DT_INST_PROP(inst, idle_polling_interval_ms),           \
+        .sleep_polling_interval_ms = DT_INST_PROP(inst, sleep_polling_interval_ms),         \
+    };                                                                                      \
+    static int kscan_gpio_topre_activity_event_handler_wrapper##inst(const zmk_event_t *eh) \
+    {                                                                                       \
+        const struct device *dev = DEVICE_DT_INST_GET(inst);                                \
+        return kscan_gpio_topre_activity_event_handler(dev, eh);                            \
+    }                                                                                       \
+    ZMK_LISTENER(kscan_gpio_topre##inst,                                                    \
+                 kscan_gpio_topre_activity_event_handler_wrapper##inst);                    \
+    ZMK_SUBSCRIPTION(kscan_gpio_topre##inst, zmk_activity_state_changed);                   \
+    DEVICE_DT_INST_DEFINE(inst,                                                             \
+                          kscan_gpio_topre_init,                                            \
+                          NULL,                                                             \
+                          &kscan_gpio_topre_data##inst,                                     \
+                          &kscan_gpio_topre_config##inst,                                   \
+                          APPLICATION,                                                      \
+                          CONFIG_APPLICATION_INIT_PRIORITY,                                 \
+                          &kscan_gpio_topre_api);
 
-static const struct kscan_gpio_topre_config kscan_gpio_topre_config = {
-    .bits =
-        {
-            KSCAN_GPIO_TOPRE_ITEM_CFG(0, 3),
-            KSCAN_GPIO_TOPRE_ITEM_CFG(0, 4),
-            KSCAN_GPIO_TOPRE_ITEM_CFG(0, 5),
-            KSCAN_GPIO_TOPRE_ITEM_CFG(0, 6),
-            KSCAN_GPIO_TOPRE_ITEM_CFG(0, 7),
-            KSCAN_GPIO_TOPRE_ITEM_CFG(0, 8),
-        },
-    .power = KSCAN_GPIO_TOPRE_ITEM_CFG(0, 0),
-    .key = KSCAN_GPIO_TOPRE_ITEM_CFG(0, 1),
-    .hys = KSCAN_GPIO_TOPRE_ITEM_CFG(0, 2),
-    .strobe = KSCAN_GPIO_TOPRE_ITEM_CFG(0, 9),
-    .matrix_relax_us = DT_INST_PROP(0, matrix_relax_us),
-    .adc_read_settle_us = DT_INST_PROP(0, adc_read_settle_us),
-    .active_polling_interval_ms = DT_INST_PROP(0, active_polling_interval_ms),
-    .idle_polling_interval_ms = DT_INST_PROP(0, idle_polling_interval_ms),
-    .sleep_polling_interval_ms = DT_INST_PROP(0, sleep_polling_interval_ms),
-};
-
-DEVICE_DT_INST_DEFINE(0, kscan_gpio_topre_init, NULL, &kscan_gpio_topre_data,
-                      &kscan_gpio_topre_config, APPLICATION, CONFIG_APPLICATION_INIT_PRIORITY,
-                      &kscan_gpio_topre_api);
+DT_INST_FOREACH_STATUS_OKAY(CREATE_KSCAN_GPIO_TOPRE)
