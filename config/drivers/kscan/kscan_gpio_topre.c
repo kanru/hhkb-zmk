@@ -27,10 +27,8 @@ struct kscan_gpio_topre_config
     struct gpio_dt_spec key;
     struct gpio_dt_spec hys;
     struct gpio_dt_spec strobe;
-    const uint16_t pin_change_delay_us;
     const uint16_t matrix_relax_us;
     const uint16_t adc_read_settle_us;
-    const uint16_t adc_relax_us;
     const uint16_t active_polling_interval_ms;
     const uint16_t idle_polling_interval_ms;
     const uint16_t sleep_polling_interval_ms;
@@ -107,7 +105,6 @@ static void kscan_gpio_topre_work_handler(struct k_work *work)
             gpio_pin_set(cfg->bits[3].port, cfg->bits[3].pin, c & BIT(0));
             gpio_pin_set(cfg->bits[4].port, cfg->bits[4].pin, c & BIT(1));
             gpio_pin_set(cfg->bits[5].port, cfg->bits[5].pin, c & BIT(2));
-            k_busy_wait(cfg->pin_change_delay_us);
 
             int cell = (r * MATRIX_COLS) + c;
             const bool prev = data->matrix_state[cell];
@@ -115,21 +112,14 @@ static void kscan_gpio_topre_work_handler(struct k_work *work)
 
             k_busy_wait(cfg->matrix_relax_us);
 
-            k_sched_lock();
             const unsigned int lock = irq_lock();
-
             // Pull low strobe line to trigger sensing
             gpio_pin_set(cfg->strobe.port, cfg->strobe.pin, 0);
+            gpio_pin_set(cfg->strobe.port, cfg->strobe.pin, 1);
             k_busy_wait(cfg->adc_read_settle_us);
             const bool pressed = gpio_pin_get(cfg->key.port, cfg->key.pin);
-
             irq_unlock(lock);
-            k_sched_unlock();
-
-            k_busy_wait(cfg->pin_change_delay_us);
             gpio_pin_set(cfg->hys.port, cfg->hys.pin, 0);
-            gpio_pin_set(cfg->strobe.port, cfg->strobe.pin, 1);
-            k_busy_wait(cfg->adc_relax_us);
 
             matrix_read[cell] = pressed;
         }
@@ -236,10 +226,8 @@ static const struct kscan_driver_api kscan_gpio_topre_api = {
         .key = GPIO_DT_SPEC_INST_GET_BY_IDX(inst, gpios, 1),                                \
         .hys = GPIO_DT_SPEC_INST_GET_BY_IDX(inst, gpios, 2),                                \
         .strobe = GPIO_DT_SPEC_INST_GET_BY_IDX(inst, gpios, 9),                             \
-        .pin_change_delay_us = DT_INST_PROP(inst, pin_change_delay_us),                     \
         .matrix_relax_us = DT_INST_PROP(inst, matrix_relax_us),                             \
         .adc_read_settle_us = DT_INST_PROP(inst, adc_read_settle_us),                       \
-        .adc_relax_us = DT_INST_PROP(inst, adc_relax_us),                                   \
         .active_polling_interval_ms = DT_INST_PROP(inst, active_polling_interval_ms),       \
         .idle_polling_interval_ms = DT_INST_PROP(inst, idle_polling_interval_ms),           \
         .sleep_polling_interval_ms = DT_INST_PROP(inst, sleep_polling_interval_ms),         \

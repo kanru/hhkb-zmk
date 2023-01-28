@@ -11,18 +11,12 @@ properties:
   gpios:
     type: phandle-array
     required: true
-  pin-change-delay-us:
-    type: int
-    default: 5
   matrix-relax-us:
     type: int
-    default: 10
+    default: 6
   adc-read-settle-us:
     type: int
     default: 5
-  adc-relax-us:
-    type: int
-    default: 30
   active-polling-interval-ms:
     type: int
     default: 8
