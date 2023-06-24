@@ -1,6 +1,6 @@
 name: hhkb_drivers
 build:
   depends:
-  - drivers
+    - drivers
   cmake: .
   kconfig: Kconfig

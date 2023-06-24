@@ -8,7 +8,8 @@ Add the extra kscan module:
 
 ```sh
 west build -b nice_nano_v2 -- \
-    -DSHIELD=hhkb -DZEPHYR_EXTRA_MODULES=$WORKSPACE_PATH/config/drivers/ \
+    -DSHIELD=hhkb \
+    -DZEPHYR_EXTRA_MODULES=$ZMK_PATH/app/drivers/;$WORKSPACE_PATH/config/hhkb_drivers/ \
     -DZMK_CONFIG=$WORKSPACE_PATH/config
 ```
 

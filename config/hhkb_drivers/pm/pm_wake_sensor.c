@@ -6,8 +6,8 @@
 
 #define DT_DRV_COMPAT zmk_pm_wake_sensor
 
-#include <device.h>
-#include <drivers/gpio.h>
+#include <zephyr/device.h>
+#include <zephyr/drivers/gpio.h>
 
 struct pm_wake_sensor_config
 {
