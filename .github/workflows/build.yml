@@ -70,7 +70,7 @@ jobs:
         run: west zephyr-export
       - name: West Build (${{ steps.variables.outputs.display-name }})
         run: |
-          west build -s zmk/app -b ${{ matrix.board }} -- -DZEPHYR_EXTRA_MODULES=${GITHUB_WORKSPACE}/config/drivers -DZMK_CONFIG=${GITHUB_WORKSPACE}/config ${{ steps.variables.outputs.extra-cmake-args }} ${{ matrix.cmake-args }}
+          west build -s zmk/app -b ${{ matrix.board }} -- -DZEPHYR_EXTRA_MODULES=${GITHUB_WORKSPACE}/config/hhkb_drivers -DZMK_CONFIG=${GITHUB_WORKSPACE}/config ${{ steps.variables.outputs.extra-cmake-args }} ${{ matrix.cmake-args }}
       - name: ${{ steps.variables.outputs.display-name }} Kconfig file
         run: cat build/zephyr/.config | grep -v "^#" | grep -v "^$"
       - name: Rename artifacts
