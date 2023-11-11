@@ -1,0 +1,28 @@
+# Copyright (c) 2022 Kan-Ru Chen
+# SPDX-License-Identifier: MIT
+
+description: |
+  Pins exposed on HHKB Pro2 daughter board header.
+
+  This binding provides a nexus mapping for the 13 pin header found
+  on the HHKB Pro2 daugther board.
+
+  Header | Pin | name
+  -------+-----+-----
+  1        P0    VCC
+  2        P0    VCC
+  3        P1    KEY
+  4        P2    HYS
+  5        P3    BIT0
+  6        P4    BIT1
+  7        P5    BIT2
+  8        P6    BIT3
+  9        P7    BIT4
+  10       P8    BIT5
+  11       P9    STROBE
+  12       P10   GND
+  13       P10   GND
+
+compatible: "zmk,hhkb-pro2-header"
+
+include: [base.yaml, gpio-nexus.yaml]

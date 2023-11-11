@@ -1,0 +1,2 @@
+add_subdirectory_ifdef(CONFIG_KSCAN_HHKB_PRO2 kscan)
+add_subdirectory_ifdef(CONFIG_PM_WAKE_SENSOR pm)

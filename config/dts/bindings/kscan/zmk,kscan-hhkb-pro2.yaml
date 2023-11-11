@@ -1,9 +1,9 @@
 # Copyright (c) 2022 Kan-Ru Chen
 # SPDX-License-Identifier: MIT
 
-description: GPIO topre keyboard controller
+description: HHKB Pro2 keyboard controller
 
-compatible: "zmk,kscan-gpio-topre"
+compatible: "zmk,kscan-hhkb-pro2"
 
 include: kscan.yaml
 
