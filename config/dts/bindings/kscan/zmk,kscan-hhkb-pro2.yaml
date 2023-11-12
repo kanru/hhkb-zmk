@@ -11,6 +11,9 @@ properties:
   gpios:
     type: phandle-array
     required: true
+  matrix-warm-up-ms:
+    type: int
+    default: 5
   matrix-relax-us:
     type: int
     default: 6
@@ -19,10 +22,10 @@ properties:
     default: 5
   active-polling-interval-ms:
     type: int
-    default: 8
+    default: 3
   idle-polling-interval-ms:
     type: int
-    default: 30
+    default: 35
   sleep-polling-interval-ms:
     type: int
     default: 3000

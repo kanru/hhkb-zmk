@@ -27,6 +27,7 @@ struct kscan_hhkb_pro2_config
     struct gpio_dt_spec key;
     struct gpio_dt_spec hys;
     struct gpio_dt_spec strobe;
+    const uint16_t matrix_warm_up_ms;
     const uint16_t matrix_relax_us;
     const uint16_t adc_read_settle_us;
     const uint16_t active_polling_interval_ms;
@@ -37,8 +38,8 @@ struct kscan_hhkb_pro2_config
 struct kscan_hhkb_pro2_data
 {
     kscan_callback_t callback;
-    struct k_timer poll_timer;
-    struct k_work poll;
+    uint16_t poll_interval;
+    struct k_work_delayable poll;
     bool matrix_state[MATRIX_CELLS];
     const struct device *dev;
 };
@@ -60,10 +61,7 @@ static int kscan_hhkb_pro2_enable(const struct device *dev)
 {
     LOG_DBG("KSCAN API enable");
     struct kscan_hhkb_pro2_data *data = dev->data;
-    const struct kscan_hhkb_pro2_config *cfg = dev->config;
-    k_timer_start(&data->poll_timer,
-                  K_MSEC(cfg->active_polling_interval_ms),
-                  K_MSEC(cfg->active_polling_interval_ms));
+    k_work_schedule(&data->poll, K_MSEC(data->poll_interval));
     return 0;
 }
 
@@ -71,15 +69,8 @@ static int kscan_hhkb_pro2_disable(const struct device *dev)
 {
     LOG_DBG("KSCAN API disable");
     struct kscan_hhkb_pro2_data *data = dev->data;
-    k_timer_stop(&data->poll_timer);
+    k_work_cancel_delayable(&data->poll);
     return 0;
-}
-
-static void kscan_hhkb_pro2_timer_handler(struct k_timer *timer)
-{
-    struct kscan_hhkb_pro2_data *data =
-        CONTAINER_OF(timer, struct kscan_hhkb_pro2_data, poll_timer);
-    k_work_submit(&data->poll);
 }
 
 static void kscan_hhkb_pro2_work_handler(struct k_work *work)
@@ -93,8 +84,8 @@ static void kscan_hhkb_pro2_work_handler(struct k_work *work)
     gpio_pin_configure(cfg->key.port, cfg->key.pin, GPIO_INPUT | cfg->key.dt_flags);
     gpio_pin_set(cfg->strobe.port, cfg->strobe.pin, 1);
     gpio_pin_set(cfg->power.port, cfg->power.pin, 1);
-    // Topre controller board needs 5 ms to be operational
-    k_sleep(K_MSEC(5));
+    // The board needs some time to be operational after powering up
+    k_sleep(K_MSEC(cfg->matrix_warm_up_ms));
     for (int r = 0; r < MATRIX_ROWS; ++r)
     {
         for (int c = 0; c < MATRIX_COLS; ++c)
@@ -146,6 +137,7 @@ static void kscan_hhkb_pro2_work_handler(struct k_work *work)
             }
         }
     }
+    k_work_schedule(&data->poll, K_MSEC(data->poll_interval));
 }
 
 static int kscan_hhkb_pro2_activity_event_handler(const struct device *dev, const zmk_event_t *eh)
@@ -157,24 +149,22 @@ static int kscan_hhkb_pro2_activity_event_handler(const struct device *dev, cons
     }
     struct kscan_hhkb_pro2_data *data = dev->data;
     const struct kscan_hhkb_pro2_config *cfg = dev->config;
-    uint16_t poll_interval;
     switch (ev->state)
     {
     case ZMK_ACTIVITY_ACTIVE:
-        poll_interval = cfg->active_polling_interval_ms;
+        data->poll_interval = cfg->active_polling_interval_ms;
         break;
     case ZMK_ACTIVITY_IDLE:
-        poll_interval = cfg->idle_polling_interval_ms;
+        data->poll_interval = cfg->idle_polling_interval_ms;
         break;
     case ZMK_ACTIVITY_SLEEP:
-        poll_interval = cfg->sleep_polling_interval_ms;
+        data->poll_interval = cfg->sleep_polling_interval_ms;
         break;
     default:
         LOG_WRN("Unhandled activity state: %d", ev->state);
         return -EINVAL;
     }
-    LOG_DBG("Setting poll interval to %d", poll_interval);
-    k_timer_start(&data->poll_timer, K_MSEC(poll_interval), K_MSEC(poll_interval));
+    LOG_DBG("Setting poll interval to %d", data->poll_interval);
     return 0;
 }
 
@@ -196,8 +186,9 @@ static int kscan_hhkb_pro2_init(const struct device *dev)
     gpio_pin_configure(cfg->hys.port, cfg->hys.pin, GPIO_OUTPUT_INACTIVE | cfg->hys.dt_flags);
     gpio_pin_configure(cfg->strobe.port, cfg->strobe.pin, GPIO_OUTPUT_INACTIVE | cfg->strobe.dt_flags);
 
-    k_timer_init(&data->poll_timer, kscan_hhkb_pro2_timer_handler, NULL);
-    k_work_init(&data->poll, kscan_hhkb_pro2_work_handler);
+    data->poll_interval = cfg->active_polling_interval_ms;
+    k_work_init_delayable(&data->poll, kscan_hhkb_pro2_work_handler);
+    k_work_schedule(&data->poll, K_MSEC(data->poll_interval));
 
     return 0;
 }
@@ -223,6 +214,7 @@ static const struct kscan_driver_api kscan_hhkb_pro2_api = {
         .key = GPIO_DT_SPEC_INST_GET_BY_IDX(inst, gpios, 1),                               \
         .hys = GPIO_DT_SPEC_INST_GET_BY_IDX(inst, gpios, 2),                               \
         .strobe = GPIO_DT_SPEC_INST_GET_BY_IDX(inst, gpios, 9),                            \
+        .matrix_warm_up_ms = DT_INST_PROP(inst, matrix_warm_up_ms),                        \
         .matrix_relax_us = DT_INST_PROP(inst, matrix_relax_us),                            \
         .adc_read_settle_us = DT_INST_PROP(inst, adc_read_settle_us),                      \
         .active_polling_interval_ms = DT_INST_PROP(inst, active_polling_interval_ms),      \
