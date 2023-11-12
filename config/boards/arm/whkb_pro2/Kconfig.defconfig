@@ -1,0 +1,28 @@
+# Copyright (c) 2023 Kan-Ru Chen
+# SPDX-License-Identifier: MIT
+
+if BOARD_WHKB_PRO2
+
+config ZMK_KEYBOARD_NAME
+    default "WHKB Pro2 Rev A"
+
+config BOARD
+    default "whkb_pro2"
+
+if USB_DEVICE_STACK
+
+config USB_NRFX
+    default y
+
+endif # USB_DEVICE_STACK
+
+config BT_CTLR
+    default BT
+
+config ZMK_BLE
+    default y
+
+config ZMK_USB
+    default y
+
+endif # BOARD_WHKB_PRO2

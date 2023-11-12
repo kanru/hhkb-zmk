@@ -1,0 +1,6 @@
+# Copyright (c) 2023 Kan-Ru Chen
+# SPDX-License-Identifier: MIT
+
+config BOARD_WHKB_PRO2
+    bool "WHKB Pro2"
+    depends on SOC_NRF52840_QIAA

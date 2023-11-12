@@ -1,0 +1,106 @@
+/*
+ * Copyright (c) 2021 The ZMK Contributors
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
+/dts-v1/;
+#include <nordic/nrf52840_qiaa.dtsi>
+#include <zephyr/dt-bindings/gpio/nordic-nrf-gpio.h>
+
+/ {
+    model = "whkb_pro2";
+    compatible = "applet,whkb_pro2";
+
+    chosen {
+        zephyr,code-partition = &code_partition;
+        zephyr,sram = &sram0;
+        zephyr,flash = &flash0;
+        zephyr,console = &cdc_acm_uart;
+        zmk,battery = &vbatt0;
+    };
+
+    vbatt0: vbatt0 {
+        compatible = "zmk,battery-voltage-divider";
+        io-channels = <&adc 1>; // P0.03
+        output-ohms = <2000000>;
+        full-ohms = <(1000000 + 2000000)>;
+        power-gpios = <&gpio0 2 GPIO_ACTIVE_HIGH>; // P0.02
+    };
+
+    hhkb_pro2_connector: hhkb_pro2_connector {
+        compatible = "zmk,hhkb-pro2-header";
+        #gpio-cells = <2>;
+        gpio-map-mask = <0xffffffff 0xffffffc0>;
+        gpio-map-pass-thru = <0 0x3f>;
+        gpio-map = <0 0 &gpio0 31 NRF_GPIO_DRIVE_S0H1>,
+                   <1 0 &gpio0 4 0>,
+                   <2 0 &gpio0 5 0>,
+                   <3 0 &gpio0 22 0>,
+                   <4 0 &gpio0 7 0>,
+                   <5 0 &gpio1 9 0>,
+                   <6 0 &gpio0 12 0>,
+                   <7 0 &gpio0 23 0>,
+                   <8 0 &gpio0 21 0>,
+                   <9 0 &gpio0 19 0>;
+    };
+};
+
+&adc {
+    status = "okay";
+};
+
+&gpio0 {
+    status = "okay";
+};
+
+&gpio1 {
+    status = "okay";
+};
+
+&usbd {
+    status = "okay";
+    cdc_acm_uart: cdc_acm_uart {
+        compatible = "zephyr,cdc-acm-uart";
+    };
+};
+
+&flash0 {
+    /*
+     * For more information, see:
+     * http://docs.zephyrproject.org/latest/devices/dts/flash_partitions.html
+     */
+    partitions {
+        compatible = "fixed-partitions";
+        #address-cells = <1>;
+        #size-cells = <1>;
+
+        sd_partition: partition@0 {
+            label = "softdevice";
+            reg = <0x00000000 0x00026000>;
+        };
+        code_partition: partition@26000 {
+            label = "code_partition";
+            reg = <0x00026000 0x000c6000>;
+        };
+
+        /*
+         * The flash starting at 0x000ec000 and ending at
+         * 0x000f3fff is reserved for use by the application.
+         */
+
+        /*
+         * Storage partition will be used by FCB/LittleFS/NVS
+         * if enabled.
+         */
+        storage_partition: partition@ec000 {
+            label = "storage";
+            reg = <0x000ec000 0x00008000>;
+        };
+
+        boot_partition: partition@f4000 {
+            label = "adafruit_boot";
+            reg = <0x000f4000 0x0000c000>;
+        };
+    };
+};

@@ -1,0 +1,6 @@
+name: hhkb-zmk
+build:
+  settings:
+    dts_root: .
+  depends:
+    - module # zmk module

@@ -1,0 +1,7 @@
+config KSCAN_HHKB_PRO2
+    bool "HHKB Pro2 daugther board driver"
+    default y
+
+config PM_WAKE_SENSOR
+    bool
+    default n

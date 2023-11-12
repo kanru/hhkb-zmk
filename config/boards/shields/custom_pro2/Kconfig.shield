@@ -1,0 +1,3 @@
+config SHIELD_CUSTOM_PRO2
+    def_bool $(shields_list_contains,custom_pro2)
+    depends on KSCAN_HHKB_PRO2
