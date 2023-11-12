@@ -92,7 +92,7 @@ static void kscan_hhkb_pro2_work_handler(struct k_work *work)
     // Power on everything
     gpio_pin_configure(cfg->key.port, cfg->key.pin, GPIO_INPUT | cfg->key.dt_flags);
     gpio_pin_set(cfg->strobe.port, cfg->strobe.pin, 1);
-    // gpio_pin_set(cfg->power.port, cfg->power.pin, 1);
+    gpio_pin_set(cfg->power.port, cfg->power.pin, 1);
     // Topre controller board needs 5 ms to be operational
     k_sleep(K_MSEC(5));
     for (int r = 0; r < MATRIX_ROWS; ++r)
@@ -131,7 +131,7 @@ static void kscan_hhkb_pro2_work_handler(struct k_work *work)
         gpio_pin_set(cfg->bits[i].port, cfg->bits[i].pin, 0);
     }
     gpio_pin_configure(cfg->key.port, cfg->key.pin, GPIO_DISCONNECTED);
-    // gpio_pin_set(cfg->power.port, cfg->power.pin, 0);
+    gpio_pin_set(cfg->power.port, cfg->power.pin, 0);
     gpio_pin_set(cfg->strobe.port, cfg->strobe.pin, 0);
 
     for (int r = 0; r < MATRIX_ROWS; ++r)
@@ -190,9 +190,7 @@ static int kscan_hhkb_pro2_init(const struct device *dev)
                            cfg->bits[i].pin,
                            GPIO_OUTPUT_INACTIVE | cfg->bits[i].dt_flags);
     }
-    // The power line needs to source more than 0.5 mA current. Set the GPIO
-    // drive mode to high drive.
-    gpio_pin_configure(cfg->power.port, cfg->power.pin, GPIO_OUTPUT_ACTIVE | cfg->power.dt_flags);
+    gpio_pin_configure(cfg->power.port, cfg->power.pin, GPIO_OUTPUT_INACTIVE | cfg->power.dt_flags);
     // Disconnect input pin to save power.
     gpio_pin_configure(cfg->key.port, cfg->key.pin, GPIO_DISCONNECTED);
     gpio_pin_configure(cfg->hys.port, cfg->hys.pin, GPIO_OUTPUT_INACTIVE | cfg->hys.dt_flags);
