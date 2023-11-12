@@ -62,3 +62,5 @@ GPIO to power the HHKB Pro2 daughter board.
 ![connector](./docs/images/connector.jpg)
 
 ![board](./docs/images/board.jpg)
+
+![schematics](./docs/images/hhkb_nicenano_v2_Schematics.png)
