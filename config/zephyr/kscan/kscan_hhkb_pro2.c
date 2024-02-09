@@ -75,7 +75,8 @@ static int kscan_hhkb_pro2_disable(const struct device *dev)
 
 static void kscan_hhkb_pro2_work_handler(struct k_work *work)
 {
-    struct kscan_hhkb_pro2_data *data = CONTAINER_OF(work, struct kscan_hhkb_pro2_data, poll);
+    struct k_work_delayable *d_work = k_work_delayable_from_work(work);
+    struct kscan_hhkb_pro2_data *data = CONTAINER_OF(d_work, struct kscan_hhkb_pro2_data, poll);
     const struct device *dev = data->dev;
     const struct kscan_hhkb_pro2_config *cfg = dev->config;
     bool matrix_read[MATRIX_CELLS];
