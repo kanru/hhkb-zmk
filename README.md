@@ -18,6 +18,9 @@ shields.
 The default Github Actions will build the firmware using the [build.yml](./build.yaml)
 definition.
 
+📢 If you build some custom boards or configs, please share a picture and tips to the
+[discussion](https://github.com/kanru/hhkb-zmk/discussions/11) thread!
+
 ## Build locally
 
 Follow the steps in the [official ZMK document](https://zmk.dev/docs/user-setup) to setup build environment.
