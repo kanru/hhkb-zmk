@@ -66,29 +66,4 @@ GPIO to power the HHKB Pro2 daughter board.
 
 ![board](./docs/images/board.jpg)
 
-![schematics](./docs/images/hhkb_nicenano_v2_Schematics.png)
-
-
-## 3D Printed Mount
-
-The 3D printed mount (@oldmanz) is designed to fit in the HHKB Pro2 case in place of the main board. It holds the Nice!Nano, a connector for the daughter board, a reset button, and a toggle switch for power.
-
-3D Models are in the `3d_models` directory.
-
-![3d_mount](./docs/images/3d_mount.jpg)
-
-![3d_mount_components](./docs/images/3d_mount_components.jpg)
-
-![3d_mount_components_2](./docs/images/3d_mount_components_2.jpg)
-
-![3d_mount_soldered_poorly](./docs/images/3d_mount_soldered.jpg)
-
-![3d_mount_assembled](./docs/images/3d_mount_assembled.jpg)
-
-![3d_mount_rear_io](./docs/images/3d_mount_rear_io.jpg)
-
-- The usb port will need to be filed a bit to fit usb-c.
-- The switch was something I had laying around, so I am unsure of its part number.
-- The reset button is behind a 3D Printed Cap, by alienman82. A hole is drilled through it.
-    - https://github.com/robotmaxtron/HHKB-usb-dust-covers
-  
+![schematics](./docs/images/hhkb_nicenano_v2_Schematics.png) 
