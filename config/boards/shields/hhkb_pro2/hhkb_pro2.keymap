@@ -1,6 +1,7 @@
 #include <behaviors.dtsi>
 #include <dt-bindings/zmk/keys.h>
 #include <dt-bindings/zmk/bt.h>
+#include <dt-bindings/zmk/outputs.h>
 
 #define DEFAULT 0
 #define FN 1
@@ -24,18 +25,18 @@
             bindings = <
 &kp K_POWER &kp F1 &kp F2 &kp F3 &kp F4 &kp F5 &kp F6 &kp F7 &kp F8 &kp F9 &kp F10 &kp F11 &kp F12 &kp INS &kp DEL
 &kp CAPS &trans &trans &trans &sys_reset &trans &trans &bootloader &kp PSCRN &kp SLCK &kp PAUSE_BREAK &kp UP &trans &kp BSPC
-&trans &kp K_VOL_DN &kp K_VOL_UP &kp K_MUTE &kp K_EJECT &trans &kp KP_MULTIPLY &kp KP_DIVIDE &kp HOME &kp PG_UP &kp LEFT &kp RIGHT &trans
-&trans &trans &trans &trans &trans &to BT &kp KP_PLUS &kp KP_MINUS &kp END &kp PG_DN &kp DOWN &trans &trans
+&to BT &kp C_VOL_DN &kp C_VOL_UP &kp C_MUTE &kp C_EJECT &trans &kp KP_MULTIPLY &kp KP_DIVIDE &kp HOME &kp PG_UP &kp LEFT &kp RIGHT &trans
+&trans &trans &trans &trans &trans &trans &kp KP_PLUS &kp KP_MINUS &kp END &kp PG_DN &kp DOWN &trans &trans
 &trans &trans               &trans                    &trans &trans
             >;
         };
 
         bt_layer {
             bindings =<
-&to DEFAULT &bt BT_SEL 0 &bt BT_SEL 1 &bt BT_SEL 2 &bt BT_SEL 3 &bt BT_SEL 4 &none &none &none &none &none &none &none &none &none
-&none &none &none &none &none &none &none &none &none &none &none &none &none &none
+&out OUT_TOG &bt BT_SEL 0 &bt BT_SEL 1 &bt BT_SEL 2 &bt BT_SEL 3 &bt BT_SEL 4 &none &none &none &none &none &none &none &none &none
+&none &bt BT_CLR &none &none &none &none &none &none &none &none &none &none &none &none
 &none &none &none &none &none &none &none &none &none &none &none &none &none
-&none &none &none &bt BT_CLR &none &none &none &none &none &none &none &none &none
+&none &none &none &none &none &none &none &none &none &none &none &none &none
 &none &none             &none                   &none &none
             >;
         };
