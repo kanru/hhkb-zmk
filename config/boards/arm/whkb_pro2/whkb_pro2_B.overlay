@@ -1,0 +1,30 @@
+/*
+ * Copyright (c) 2021 The ZMK Contributors
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
+#include <zephyr/dt-bindings/gpio/nordic-nrf-gpio.h>
+
+/ {
+    vbatt0: vbatt0 {
+        compatible = "zmk,battery-nrf-vddh";
+    };
+
+    hhkb_pro2_connector: hhkb_pro2_connector {
+        compatible = "zmk,hhkb-pro2-header";
+        #gpio-cells = <2>;
+        gpio-map-mask = <0xffffffff 0xffffffc0>;
+        gpio-map-pass-thru = <0 0x3f>;
+        gpio-map = <0 0 &gpio0 29 0>, // LDO_ENABLE
+                   <1 0 &gpio0 13 0>,
+                   <2 0 &gpio0 20 0>,
+                   <3 0 &gpio0 17 0>,
+                   <4 0 &gpio0 15 0>,
+                   <5 0 &gpio0 26 0>,
+                   <6 0 &gpio0 6 0>,
+                   <7 0 &gpio0 8 0>,
+                   <8 0 &gpio0 4 0>,
+                   <9 0 &gpio0 12 0>;
+    };
+};
