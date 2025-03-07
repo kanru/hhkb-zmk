@@ -1,10 +1,11 @@
 #include <dt-bindings/zmk/matrix_transform.h>
 #include <dt-bindings/zmk/kscan_mock.h>
 
+#include "hhkb_pro2-layout.dtsi"
+
 / {
     chosen {
-        zmk,kscan = &kscan0;
-        zmk,matrix_transform = &default_transform;
+        zmk,physical-layout = &hhkb_pro2_layout;
     };
 
     kscan0: kscan0 {
@@ -33,4 +34,9 @@
         RC(3,5) RC(3,6)                 RC(3,7)                 RC(5,7) RC(5,6)
         >;
     };
+};
+
+&hhkb_pro2_layout {
+    kscan = <&kscan0>;
+    transform = <&default_transform>;
 };
