@@ -1,6 +1,6 @@
 if SHIELD_CUSTOM_PRO2
 
 config ZMK_KEYBOARD_NAME
-    default "Custom HHKB Pro2"
+    default "HHKB Pro2"
 
 endif
