@@ -4,7 +4,7 @@
 if BOARD_WHKB_PRO2
 
 config ZMK_KEYBOARD_NAME
-    default "WHKB Pro2 Rev A"
+    default "WHKB Pro2"
 
 config BOARD
     default "whkb_pro2"
