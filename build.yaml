@@ -17,7 +17,7 @@ include:
     shield: hhkb_pro2
     snippet: studio-rpc-usb-uart
     cmake-args: -DCONFIG_ZMK_STUDIO=y
-  - board: nice_nano_v2
+  - board: nice_nano@2.0.0//zmk
     shield: hhkb_pro2 custom_pro2
     snippet: studio-rpc-usb-uart
     cmake-args: -DCONFIG_ZMK_STUDIO=y

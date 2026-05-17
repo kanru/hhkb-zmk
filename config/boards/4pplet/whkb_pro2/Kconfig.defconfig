@@ -6,9 +6,6 @@ if BOARD_WHKB_PRO2
 config ZMK_KEYBOARD_NAME
     default "WHKB Pro2 Rev A"
 
-config BOARD
-    default "whkb_pro2"
-
 if USB_DEVICE_STACK
 
 config USB_NRFX

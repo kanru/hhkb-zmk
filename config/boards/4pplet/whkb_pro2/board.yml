@@ -1,0 +1,5 @@
+board:
+  name: whkb_pro2
+  vendor: 4pplet
+  socs:
+    - name: nrf52840
