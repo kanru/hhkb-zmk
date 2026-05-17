@@ -10,6 +10,7 @@
 
     kscan0: kscan0 {
         compatible = "zmk,kscan-hhkb-pro2";
+        status = "okay";
         gpios = <&hhkb_pro2_connector 0 GPIO_ACTIVE_HIGH>,               /* 0: POWER */
                 <&hhkb_pro2_connector 1 (GPIO_ACTIVE_LOW|GPIO_PULL_UP)>, /* 1: KEY */
                 <&hhkb_pro2_connector 2 GPIO_ACTIVE_HIGH>,               /* 2: HYS */
